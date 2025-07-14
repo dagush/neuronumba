@@ -1,12 +1,12 @@
 # =======================================================================
-# =======================================================================
+# ======================================================================
 import numpy as np
 from scipy import signal
 
 from neuronumba.basic.attr import Attr
 from neuronumba.observables.base_observable import ObservableFMRI
 from neuronumba.tools import matlab_tricks
-
+from neuronumba.observables.distance_rule import DistanceRule
 
 class Turbulence(ObservableFMRI):
     """
@@ -30,23 +30,28 @@ class Turbulence(ObservableFMRI):
     cog_dist = Attr(required=True)
     c_exp = Attr(dependant=True)
     rr = Attr(dependant=True)
+    distance_rule = Attr(dependant=True)
 
     def _init_dependant(self):
         super()._init_dependant()
-        self._compute_exp_law()
+        self._compute_distance()
 
-    def _compute_exp_law(self):
+    def _compute_distance(self):
         N = self.cog_dist.shape[0]
-        # Compute the distance matrix
         rr = np.zeros((N, N))
+        c_exp = np.zeros((N, N))
+
         for i in range(N):
             for j in range(N):
-                rr[i, j] = np.linalg.norm(self.cog_dist[i, :] - self.cog_dist[j, :])
-        # Build the exponential-distance matrix
-        c_exp = np.exp(-self.lambda_val * rr)
+                x_i = self.cog_dist[i]
+                x_j = self.cog_dist[j]
+                rr[i, j] = np.linalg.norm(x_i - x_j)
+                c_exp[i, j] = self.distance_rule.compute(x_i, x_j, self.lambda_val)
+
         np.fill_diagonal(c_exp, 1)
         self.rr = rr
         self.c_exp = c_exp
+
 
     def _compute_from_fmri(self, bold_signal):
         # bold_signal (ndarray): Bold signal with shape (n_time_samples, n_rois)
