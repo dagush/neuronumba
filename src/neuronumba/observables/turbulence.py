@@ -6,7 +6,7 @@ from scipy import signal
 from neuronumba.basic.attr import Attr
 from neuronumba.observables.base_observable import ObservableFMRI
 from neuronumba.tools import matlab_tricks
-from neuronumba.observables.distance_rule import DistanceRule
+from neuronumba.observables.distance_rule import *
 
 class Turbulence(ObservableFMRI):
     """
@@ -24,13 +24,14 @@ class Turbulence(ObservableFMRI):
     Code by Gustavo Deco, 2020.
     Translated by Marc Gregoris, May 21, 2024
     Refactored by Gustavo Patow, June 9, 2024
+    Edited by Lisa Haz, July 21, 2024
     """
 
     lambda_val = Attr(default=0.18, required=False)
     cog_dist = Attr(required=True)
     c_exp = Attr(dependant=True)
     rr = Attr(dependant=True)
-    distance_rule = Attr(dependant=True)
+    distance_rule = Attr(default = ExponentialDistanceRule(),required=True)
 
     def _init_dependant(self):
         super()._init_dependant()
@@ -45,13 +46,12 @@ class Turbulence(ObservableFMRI):
             for j in range(N):
                 x_i = self.cog_dist[i]
                 x_j = self.cog_dist[j]
-                rr[i, j] = np.linalg.norm(x_i - x_j)
                 c_exp[i, j] = self.distance_rule.compute(x_i, x_j, self.lambda_val)
+                rr[i, j] = np.linalg.norm(x_i - x_j)  # Distància euclidiana
 
         np.fill_diagonal(c_exp, 1)
         self.rr = rr
         self.c_exp = c_exp
-
 
     def _compute_from_fmri(self, bold_signal):
         # bold_signal (ndarray): Bold signal with shape (n_time_samples, n_rois)
