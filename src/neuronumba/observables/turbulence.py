@@ -1,6 +1,5 @@
 # =======================================================================
 # ======================================================================
-import numpy as np
 from scipy import signal
 
 from neuronumba.basic.attr import Attr
@@ -46,7 +45,7 @@ class Turbulence(ObservableFMRI):
             for j in range(N):
                 x_i = self.cog_dist[i]
                 x_j = self.cog_dist[j]
-                c_exp[i, j] = self.distance_rule.compute(x_i, x_j, self.lambda_val)
+                c_exp[i, j] = self.distance_rule.compute(x_i, x_j, i,j)
                 rr[i, j] = np.linalg.norm(x_i - x_j)  # Distància euclidiana
 
         np.fill_diagonal(c_exp, 1)
@@ -55,7 +54,7 @@ class Turbulence(ObservableFMRI):
 
     def _compute_from_fmri(self, bold_signal):
         # bold_signal (ndarray): Bold signal with shape (n_time_samples, n_rois)
-        cc = self.compute_turbulence(bold_signal.T)
+        cc = self.compute_turbulence(bold_signal)
         return cc
 
     def compute_turbulence(self, bold_signal):

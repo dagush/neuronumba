@@ -3,8 +3,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 from scipy.spatial import distance
 
-
-
 class DistanceRule(ABC):
     """
         Long range connections framework, from:
@@ -16,21 +14,26 @@ class DistanceRule(ABC):
         Code by Gustavo Deco, 2021.
         Translated by Lisa Haz, July 2, 2024
         """
+
     @abstractmethod
-    def compute(self, x_i, x_j, lambda_val):
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def compute(self, x_i, x_j, i , j):
         pass
 
 
 class ExponentialDistanceRule(DistanceRule):
-    def __init__(self, alpha=1.0):
-        self.alpha = alpha
+    def __init__(self, lambda_val=0.18):
+        self.lambda_val = lambda_val
 
-    def compute(self, x, y, lambda_val):
+    def compute(self, x, y, i, j):
         """
         Compute the exponential distance between two vectors.
         """
         dist = np.linalg.norm(np.array(x) - np.array(y))
-        return np.exp(-lambda_val * dist)
+        return np.exp(-self.lambda_val * dist)
 
 
 
@@ -40,24 +43,19 @@ class EDRLongDistance(DistanceRule):
     només si la distància entre nodes > 3 * lambda.
     """
 
-    def __init__(self, lambda_val: float = 0.18, lr_fraction: float = 0.05, seed: int = 42):
+    def __init__(self, lambda_val: float = 0.18, sc = None):
         super().__init__()
         self.lambda_val = lambda_val
-        self.lr_fraction = lr_fraction
-        self.seed = seed
-        self.rng = np.random.default_rng(seed)
-        self.weights = None  # Es generarà només un cop
+        self.sc = sc
 
-    def compute(self, x_i, x_j, lambda_val):
+    def compute(self, x_i, x_j, i, j):
 
         dist = distance.euclidean(x_i, x_j)
-        weight = np.exp(-lambda_val * dist)
+        weight = np.exp(-self.lambda_val * dist)
 
         # Si la distància és > 3 * lambda, pot tenir connexió long-range
-        if dist > 3 * lambda_val:
-            # Decidir aleatòriament si hi ha connexió long-range segons lr_fraction (probabilitat)
-            if self.rng.random() < self.lr_fraction:
-                weight = 1.0
+        if self.sc[i,j] > 3 * weight:
+                weight = self.sc[i,j]
 
         return weight
 
