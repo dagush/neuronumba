@@ -59,7 +59,7 @@ class Attr(object):
 class HasAttr(object):
     Type = AttrEnum(['Unknown'])
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: object) -> None:
         self._defined_attrs = {}
         self._init_attributes(kwargs)
 
