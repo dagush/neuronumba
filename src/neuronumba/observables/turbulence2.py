@@ -4,6 +4,7 @@ import numpy as np
 
 from neuronumba.basic.attr import Attr
 from neuronumba.observables.base_observable import ObservableFMRI
+from neuronumba.observables.distance_rule import ExponentialDistanceRule
 from neuronumba.observables.turbulence import Turbulence
 from neuronumba.tools import matlab_tricks
 from scipy.optimize import curve_fit
@@ -30,10 +31,15 @@ class Information_transfer(Turbulence):
 
     Code by Noelia Martínez-Molina, 2024.
     Translated by Gustavo Patow, October 3, 2024
+    Edited by Lisa Haz, July ,2025
     """
     NR = Attr(default=400, required=False)
     NRini = Attr(default=20, required=False)
     NRfin = Attr(default=80, required=False)
+    distance_rule = Attr(default=ExponentialDistanceRule(), required=True)
+
+    def _init_dependant(self):
+        super()._init_dependant()
 
     def _compute_from_fmri(self, bold_signal):
         # bold_signal (ndarray): Bold signal with shape (n_rois, n_time_samples)
@@ -125,10 +131,12 @@ class Information_cascade(ObservableFMRI):
 
     Code by Noelia Martínez-Molina, 2024.
     Translated by Gustavo Patow, October 3, 2024
+    Edited by Lisa Haz, July, 2025
     """
 
     lambda_values = Attr(default=[0.18], required=False)
     cog_dist = Attr(required=True)
+    distance_rule = Attr(default= ExponentialDistanceRule(), required=True)
 
     def _compute_from_fmri(self, bold_signal):
         # bold_signal (ndarray): Bold signal with shape (n_rois, n_time_samples)
@@ -139,7 +147,7 @@ class Information_cascade(ObservableFMRI):
         turbuRes = {}
         for lambda_v in self.lambda_values:
             # Define and call the turbulence object
-            Turbu = Information_transfer(cog_dist=self.cog_dist, lambda_val=lambda_v, ignore_nans=True)
+            Turbu = Information_transfer(cog_dist=self.cog_dist, lambda_val=lambda_v, ignore_nans=True, distance_rule=self.distance_rule)
             Turbu.configure()
             turbuRes[lambda_v] = Turbu.from_fmri(bold_signal)
         entropys = {lambda_v: turbuRes[lambda_v]['enstrophy'] for lambda_v in self.lambda_values}
