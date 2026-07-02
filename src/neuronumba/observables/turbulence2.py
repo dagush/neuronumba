@@ -161,8 +161,8 @@ class Information_cascade(ObservableFMRI):
         for lambda_pos in range(len_lambdas-1):
             lambda_v = self.lambda_values[lambda_pos]
             lambda_v_next = self.lambda_values[lambda_pos+1]
-            cc, pp = matlab_tricks.corr2(np.squeeze(enstropys[lambda_v_next][:, 1:]).T,
-                                         np.squeeze(enstropys[lambda_v][:, :-1]).T)
+            cc, pp = matlab_tricks.corr_p(np.squeeze(enstropys[lambda_v_next][:, 1:]).T,
+                                          np.squeeze(enstropys[lambda_v][:, :-1]).T)
             TransferLambda[lambda_pos+1] = np.nanmean(np.abs(cc[pp < 0.05]))  # info flow
         InformationCascade = np.nanmean(TransferLambda[1:len_lambdas],axis=0)  # info cascade
         turbus = {f'{attrib}-{lambda_v}': turbuRes[lambda_v][attrib]

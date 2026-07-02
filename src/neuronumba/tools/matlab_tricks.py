@@ -15,7 +15,7 @@ def corr2(a,b):
     a = a - mean2(a)
     b = b - mean2(b)
 
-    r = (a*b).sum() / np.sqrt((a*a).sum() * (b*b).sum());
+    r = (a*b).sum() / np.sqrt((a*a).sum() * (b*b).sum())
     return r
 
 
@@ -30,7 +30,7 @@ def corr(A, B):
 
 # Matlab's c,p = corr(A,B) function. Based on the code from
 # https://stackoverflow.com/questions/79040124/p-values-for-all-pairs-between-two-matrices-to-achieve-matlabs-corr-function
-def corr2(A,B):
+def corr_p(A,B):
     df1 = pd.DataFrame(A)
     df2 = pd.DataFrame(B)
 
