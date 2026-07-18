@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.signal import butter, detrend, filtfilt
+from scipy import stats
 
 from neuronumba.basic.attr import HasAttr, Attr
 
@@ -15,6 +16,7 @@ class BandPassFilter(HasAttr):
     apply_demean = Attr(default=True, required=False)
     apply_detrend = Attr(default=True, required=False)
     apply_finalDetrend = Attr(default=False, required=False)
+    apply_zscore = Attr(default=False, required=False)
 
     def filter(self, signal):
         """
@@ -39,8 +41,10 @@ class BandPassFilter(HasAttr):
                     ts[ts > 3. * np.std(ts)] = 3. * np.std(ts)  # Remove strong artefacts
                     ts[ts < -3. * np.std(ts)] = -3. * np.std(ts)  # Remove strong artefacts
 
+                ts = stats.zscore(ts) if self.apply_zscore else ts
+
                 signal_filt[:, n] = filtfilt(bfilt, afilt, ts, padlen=3 * (max(len(bfilt),
-                                                                                  len(afilt)) - 1))  # Band pass filter. padlen modified to get the same result as in Matlab
+                                                                               len(afilt)) - 1))  # Band pass filter. padlen modified to get the same result as in Matlab
 
                 signal_filt[:, n] = detrend(signal_filt[:, n]) if self.apply_finalDetrend else signal_filt[:, n]
 
